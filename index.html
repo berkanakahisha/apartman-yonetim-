@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <title>Apartman Yönetim Paneli</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="style.css" />
+
+    <!-- PDF için jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- Excel için SheetJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="app">
+        <header class="app-header">
+            <div>
+                <h1>Apartman Yönetim Paneli</h1>
+                <p class="subtitle">Aidat & borç takibi, rapor ve Excel çıktısı</p>
+            </div>
+            <div class="header-right">
+                <label class="month-label">
+                    Ay Seç:
+                    <input type="month" id="monthSelect" />
+                </label>
+            </div>
+        </header>
+
+        <section class="toolbar">
+            <button id="btnAddResident" class="btn primary">Yeni Daire / Kullanıcı</button>
+            <button id="btnExportPDF" class="btn">PDF Rapor</button>
+            <button id="btnExportExcel" class="btn">Excel Çıktısı</button>
+            <button id="btnClearData" class="btn danger outline">Tüm Veriyi Sil</button>
+        </section>
+
+        <section class="content">
+            <div class="table-card">
+                <div class="table-header">
+                    <h2>Liste</h2>
+                    <div class="summary">
+                        <span>Toplam Aylık Aidat: <strong id="summaryMonthlyFee">0</strong> ₺</span>
+                        <span>Bu Ay Ödenen: <strong id="summaryPaid">0</strong> ₺</span>
+                        <span>Kalan: <strong id="summaryRemaining">0</strong> ₺</span>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table id="residentTable">
+                        <thead>
+                            <tr>
+                                <th>Daire No</th>
+                                <th>İsim / Soyisim</th>
+                                <th>Aylık Aidat (₺)</th>
+                                <th>Bu Ay Ödenen (₺)</th>
+                                <th>Kalan Borç (₺)</th>
+                                <th>Not</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody id="residentTableBody"></tbody>
+                    </table>
+                </div>
+                <p class="hint">
+                    Veriler tarayıcıdaki <strong>localStorage</strong>'da saklanır.
+                </p>
+            </div>
+        </section>
+    </div>
+
+    <!-- Kullanıcı ekleme / düzenleme modal -->
+    <div class="modal-backdrop" id="residentModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="residentModalTitle">Yeni Kullanıcı / Daire</h2>
+                <button id="modalCloseBtn" class="icon-btn">✕</button>
+            </div>
+            <form id="residentForm" class="modal-body">
+                <input type="hidden" id="residentId" />
+
+                <label>Daire No<input type="text" id="flatNo" required></label>
+                <label>İsim Soyisim<input type="text" id="fullName" required></label>
+                <label>Aylık Aidat<input type="number" id="monthlyFee" required></label>
+                <label>Bu Ay Ödenen<input type="number" id="paidThisMonth" value="0"></label>
+                <label>Not<textarea id="note"></textarea></label>
+
+                <button type="submit" class="btn primary">Kaydet</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
