@@ -1,12 +1,22 @@
-// Basit apartman yönetimi uygulaması
-// Veri sadece tarayıcı localStorage'da tutulur, sunucu yok.
+// ---------------------------------------------------
+//  BASİT APARTMAN YÖNETİMİ – TAM DÜZENLENMİŞ APP.JS
+// ---------------------------------------------------
 
 const STORAGE_KEY = "apartmanYonetim_v1";
 
-let residents = []; // { id, flatNo, fullName, monthlyFee, paidThisMonth, note }
-let currentMonth = "";
+// Veriler
+let residents = [];
+let currentRole = null;
 
-// Yardımcı: para formatı (Türkçe)
+// Kullanıcılar (Rol Sistemi)
+const users = [
+    { username: "admin", password: "1234", role: "admin" },
+    { username: "denetci", password: "1234", role: "viewer" }
+];
+
+// ----------------------------------
+// Yardımcı: Para formatı
+// ----------------------------------
 function formatMoney(value) {
     const num = Number(value || 0);
     return num.toLocaleString("tr-TR", {
@@ -15,7 +25,9 @@ function formatMoney(value) {
     });
 }
 
-// LocalStorage'dan veri yükle
+// ----------------------------------
+// Veri yükleme
+// ----------------------------------
 function loadData() {
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -29,13 +41,17 @@ function loadData() {
     }
 }
 
-// LocalStorage'a kaydet
+// ----------------------------------
+// Veri kaydetme
+// ----------------------------------
 function saveData() {
     const obj = { residents };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
 }
 
-// Tabloyu yeniden çiz
+// ----------------------------------
+// TABLOYU YENİDEN ÇİZ
+// ----------------------------------
 function renderTable() {
     const tbody = document.getElementById("residentTableBody");
     tbody.innerHTML = "";
@@ -55,28 +71,34 @@ function renderTable() {
 
         const tr = document.createElement("tr");
 
+        // Daire
         const tdFlat = document.createElement("td");
         tdFlat.textContent = r.flatNo;
         tr.appendChild(tdFlat);
 
+        // İsim
         const tdName = document.createElement("td");
         tdName.textContent = r.fullName;
         tr.appendChild(tdName);
 
+        // Aidat
         const tdMonthly = document.createElement("td");
         tdMonthly.className = "amount";
         tdMonthly.textContent = formatMoney(monthly);
         tr.appendChild(tdMonthly);
 
+        // Ödenen
         const tdPaid = document.createElement("td");
         tdPaid.className = "amount";
         tdPaid.textContent = formatMoney(paid);
         tr.appendChild(tdPaid);
 
+        // Kalan
         const tdRemaining = document.createElement("td");
         tdRemaining.className = "amount";
         const badge = document.createElement("span");
         badge.classList.add("badge");
+
         if (remaining === 0 && (monthly > 0 || paid > 0)) {
             badge.classList.add("positive");
             badge.textContent = "Yok";
@@ -90,20 +112,23 @@ function renderTable() {
         tdRemaining.appendChild(badge);
         tr.appendChild(tdRemaining);
 
+        // Not
         const tdNote = document.createElement("td");
         tdNote.textContent = r.note || "";
         tr.appendChild(tdNote);
 
+        // Aksiyonlar
         const tdActions = document.createElement("td");
         tdActions.className = "actions";
+
         const editBtn = document.createElement("button");
-        editBtn.className = "icon-btn";
+        editBtn.className = "icon-btn edit-btn";
         editBtn.title = "Düzenle";
         editBtn.textContent = "✎";
         editBtn.addEventListener("click", () => openEditModal(r.id));
 
         const delBtn = document.createElement("button");
-        delBtn.className = "icon-btn danger";
+        delBtn.className = "icon-btn danger delete-btn";
         delBtn.title = "Sil";
         delBtn.textContent = "🗑";
         delBtn.addEventListener("click", () => deleteResident(r.id));
@@ -115,64 +140,87 @@ function renderTable() {
         tbody.appendChild(tr);
     });
 
+    // Toplam hesaplar
     document.getElementById("summaryMonthlyFee").textContent =
         formatMoney(totalMonthly);
-    document.getElementById("summaryPaid").textContent = formatMoney(totalPaid);
+    document.getElementById("summaryPaid").textContent =
+        formatMoney(totalPaid);
     document.getElementById("summaryRemaining").textContent =
         formatMoney(totalRemaining);
+
+    // Eğer denetçi ise butonlar gizlenecek (yeniden çizimde)
+    if (currentRole === "viewer") disableAdminFeatures();
 }
 
+// ----------------------------------
 // Yeni kullanıcı ekle
+// ----------------------------------
 function addResident(data) {
-    const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    const id =
+        Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
     residents.push({ id, ...data });
     saveData();
     renderTable();
 }
 
-// Kullanıcı güncelle
+// ----------------------------------
+// Güncelle
+// ----------------------------------
 function updateResident(id, data) {
     const idx = residents.findIndex((r) => r.id === id);
     if (idx === -1) return;
+
     residents[idx] = { ...residents[idx], ...data };
     saveData();
     renderTable();
 }
 
-// Kullanıcı sil
+// ----------------------------------
+// Sil
+// ----------------------------------
 function deleteResident(id) {
     const r = residents.find((x) => x.id === id);
     const name = r ? `${r.flatNo} - ${r.fullName}` : "";
-    if (!confirm(`${name} kaydını silmek istediğinizden emin misiniz?`)) return;
+
+    if (!confirm(`${name} kaydını silmek istiyor musunuz?`)) return;
+
     residents = residents.filter((r) => r.id !== id);
     saveData();
     renderTable();
 }
-// Modal aç (yeni)
+
+// ----------------------------------
+// Modallar
+// ----------------------------------
 function openNewModal() {
     document.getElementById("residentModalTitle").textContent =
         "Yeni Kullanıcı / Daire";
+
     document.getElementById("residentId").value = "";
     document.getElementById("flatNo").value = "";
     document.getElementById("fullName").value = "";
     document.getElementById("monthlyFee").value = "";
     document.getElementById("paidThisMonth").value = "0";
     document.getElementById("note").value = "";
+
     openModal();
 }
 
-// Modal aç (düzenleme)
 function openEditModal(id) {
     const r = residents.find((x) => x.id === id);
     if (!r) return;
+
     document.getElementById("residentModalTitle").textContent =
         "Kullanıcı / Daire Düzenle";
+
     document.getElementById("residentId").value = r.id;
     document.getElementById("flatNo").value = r.flatNo;
     document.getElementById("fullName").value = r.fullName;
     document.getElementById("monthlyFee").value = r.monthlyFee;
     document.getElementById("paidThisMonth").value = r.paidThisMonth || 0;
     document.getElementById("note").value = r.note || "";
+
     openModal();
 }
 
@@ -184,7 +232,9 @@ function closeModal() {
     document.getElementById("residentModal").classList.remove("open");
 }
 
-// PDF oluştur
+// ----------------------------------
+// PDF ÇIKTI
+// ----------------------------------
 function exportPDF() {
     if (!residents.length) {
         alert("Önce en az bir kullanıcı ekleyin.");
@@ -217,19 +267,19 @@ function exportPDF() {
 
     doc.autoTable({
         head: [
-            ["Daire", "İsim", "Aylık Aidat", "Bu Ay Ödenen", "Kalan Borç", "Not"]
+            ["Daire", "İsim", "Aidat", "Ödenen", "Kalan", "Not"]
         ],
         body,
         startY: 30,
-        styles: { fontSize: 9 },
-        headStyles: { fillColor: [79, 70, 229] }
+        styles: { fontSize: 9 }
     });
 
-    const fileName = `Aidat_Raporu_${monthLabel.replace(" ", "_")}.pdf`;
-    doc.save(fileName);
+    doc.save(`Aidat_Raporu_${monthLabel}.pdf`);
 }
 
-// Excel oluştur
+// ----------------------------------
+// EXCEL ÇIKTI
+// ----------------------------------
 function exportExcel() {
     if (!residents.length) {
         alert("Önce en az bir kullanıcı ekleyin.");
@@ -237,139 +287,125 @@ function exportExcel() {
     }
     const monthLabel = getCurrentMonthLabel();
 
-    const rows = residents.map((r) => {
-        const monthly = Number(r.monthlyFee || 0);
-        const paid = Number(r.paidThisMonth || 0);
-        const remaining = Math.max(monthly - paid, 0);
-        return {
-            "Daire No": r.flatNo,
-            "İsim Soyisim": r.fullName,
-            "Aylık Aidat (₺)": Number(monthly.toFixed(2)),
-            "Bu Ay Ödenen (₺)": Number(paid.toFixed(2)),
-            "Kalan Borç (₺)": Number(remaining.toFixed(2)),
-            Not: r.note || ""
-        };
-    });
+    const rows = residents.map((r) => ({
+        "Daire": r.flatNo,
+        "İsim": r.fullName,
+        "Aidat (₺)": Number(r.monthlyFee),
+        "Ödenen (₺)": Number(r.paidThisMonth),
+        "Kalan (₺)": Number(r.monthlyFee - r.paidThisMonth),
+        "Not": r.note
+    }));
 
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Aidat");
 
-    const fileName = `Aidat_Listesi_${monthLabel.replace(" ", "_")}.xlsx`;
-    XLSX.writeFile(wb, fileName);
+    XLSX.writeFile(wb, `Aidat_Listesi_${monthLabel}.xlsx`);
 }
 
-// Ay bilgisini yazıya çevir
+// ----------------------------------
+// Ay formatı
+// ----------------------------------
 function getCurrentMonthLabel() {
     const input = document.getElementById("monthSelect").value;
     if (!input) return "";
     const [year, month] = input.split("-");
-    const monthNames = [
-        "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
-        "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"
+    const m = [
+        "Ocak","Şubat","Mart","Nisan","Mayıs","Haziran",
+        "Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"
     ];
-    const idx = Number(month) - 1;
-    return monthNames[idx] + " " + year;
+    return m[Number(month) - 1] + " " + year;
 }
 
-// Tüm veriyi sil
+// ----------------------------------
+// TÜM VERİLERİ TEMİZLE
+// ----------------------------------
 function clearAllData() {
-    if (!confirm("Tüm daire ve ödeme verileri silinecek. Emin misiniz?"))
-        return;
-
+    if (!confirm("Tüm veriler silinecek! Emin misiniz?")) return;
     residents = [];
     saveData();
     renderTable();
 }
 
-// DOM yüklendiğinde
-document.addEventListener("DOMContentLoaded", () => {
-    // ---- Kullanıcı Yetkileri ----
-const users = [
-    { username: "admin", password: "1234", role: "admin" },
-    { username: "denetci", password: "1234", role: "viewer" }
-];
+// ----------------------------------
+// YETKİ SİSTEMİ (ADMIN / DENETÇİ)
+// ----------------------------------
+function disableAdminFeatures() {
+    // Yeni daire ekleme
+    const addBtn = document.getElementById("btnAddResident");
+    if (addBtn) addBtn.style.display = "none";
 
-let currentRole = null;
+    // Düzenleme butonları
+    document.querySelectorAll(".edit-btn").forEach(btn => btn.style.display = "none");
 
-// Login kontrol
-document.getElementById("loginBtn").addEventListener("click", () => {
+    // Silme butonları
+    document.querySelectorAll(".delete-btn, .icon-btn.danger")
+        .forEach(btn => btn.style.display = "none");
+}
+
+// ----------------------------------
+// LOGIN SİSTEMİ
+// ----------------------------------
+function handleLogin() {
     const u = document.getElementById("loginUsername").value.trim();
     const p = document.getElementById("loginPassword").value.trim();
-    
+
     const found = users.find(x => x.username === u && x.password === p);
 
     if (!found) {
-        document.getElementById("loginError").textContent = "Hatalı kullanıcı adı veya şifre!";
+        document.getElementById("loginError").textContent =
+            "Hatalı kullanıcı adı veya şifre!";
         return;
     }
 
     currentRole = found.role;
 
-    // Yönetici değilse butonları kapat
-    if (currentRole === "viewer") {
-        disableAdminFeatures();
-        function disableAdminFeatures() {
-    // Yeni kayıt ekleme kapansın
-    document.getElementById("btnAddResident").style.display = "none";
-
-    // Tüm silme butonlarını gizle
-    const deleteButtons = document.querySelectorAll(".delete-btn, .icon-btn.danger");
-    deleteButtons.forEach(btn => btn.style.display = "none");
-
-    // Düzenleme butonları kapansın
-    const editButtons = document.querySelectorAll(".edit-btn");
-    editButtons.forEach(btn => btn.style.display = "none");
-}
-
-    }
-
     // Login ekranını kapat
     document.getElementById("loginScreen").style.display = "none";
-});
 
-    // Ay seçimini bugünün ayına ayarla
-    const monthInput = document.getElementById("monthSelect");
+    // Eğer görüntüleyici ise bazı özellikleri kapat
+    if (currentRole === "viewer") {
+        disableAdminFeatures();
+    }
+}
+
+// ----------------------------------
+// DOM YÜKLENDİĞİNDE
+// ----------------------------------
+document.addEventListener("DOMContentLoaded", () => {
+    // Login olay bağlama
+    document.getElementById("loginBtn").addEventListener("click", handleLogin);
+
+    // Ay varsayılan
     const now = new Date();
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, "0");
-    monthInput.value = `${yyyy}-${mm}`;
+    document.getElementById("monthSelect").value =
+        now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
 
-    // Verileri yükle
+    // Veri yükle
     loadData();
     renderTable();
 
-    // Buton olayları
+    // Butonlar
     document.getElementById("btnAddResident").addEventListener("click", openNewModal);
     document.getElementById("btnExportPDF").addEventListener("click", exportPDF);
     document.getElementById("btnExportExcel").addEventListener("click", exportExcel);
     document.getElementById("btnClearData").addEventListener("click", clearAllData);
 
-    // Modal kapatma
+    // Modal kapanış
     document.getElementById("modalCloseBtn").addEventListener("click", closeModal);
 
-    // Form submit
+    // Form gönderme
     document.getElementById("residentForm").addEventListener("submit", (e) => {
         e.preventDefault();
 
         const id = document.getElementById("residentId").value || null;
-        const flatNo = document.getElementById("flatNo").value.trim();
-        const fullName = document.getElementById("fullName").value.trim();
-        const monthlyFee = Number(document.getElementById("monthlyFee").value || 0);
-        const paidThisMonth = Number(document.getElementById("paidThisMonth").value || 0);
-        const note = document.getElementById("note").value.trim();
-
-        if (!flatNo || !fullName) {
-            alert("Daire no ve isim zorunludur.");
-            return;
-        }
 
         const data = {
-            flatNo,
-            fullName,
-            monthlyFee,
-            paidThisMonth,
-            note
+            flatNo: document.getElementById("flatNo").value.trim(),
+            fullName: document.getElementById("fullName").value.trim(),
+            monthlyFee: Number(document.getElementById("monthlyFee").value || 0),
+            paidThisMonth: Number(document.getElementById("paidThisMonth").value || 0),
+            note: document.getElementById("note").value.trim()
         };
 
         if (id) updateResident(id, data);
