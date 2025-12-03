@@ -284,6 +284,50 @@ function clearAllData() {
 
 // DOM yüklendiğinde
 document.addEventListener("DOMContentLoaded", () => {
+    // ---- Kullanıcı Yetkileri ----
+const users = [
+    { username: "admin", password: "1234", role: "admin" },
+    { username: "denetci", password: "1234", role: "viewer" }
+];
+
+let currentRole = null;
+
+// Login kontrol
+document.getElementById("loginBtn").addEventListener("click", () => {
+    const u = document.getElementById("loginUsername").value.trim();
+    const p = document.getElementById("loginPassword").value.trim();
+    
+    const found = users.find(x => x.username === u && x.password === p);
+
+    if (!found) {
+        document.getElementById("loginError").textContent = "Hatalı kullanıcı adı veya şifre!";
+        return;
+    }
+
+    currentRole = found.role;
+
+    // Yönetici değilse butonları kapat
+    if (currentRole === "viewer") {
+        disableAdminFeatures();
+        function disableAdminFeatures() {
+    // Yeni kayıt ekleme kapansın
+    document.getElementById("btnAddResident").style.display = "none";
+
+    // Tüm silme butonlarını gizle
+    const deleteButtons = document.querySelectorAll(".delete-btn, .icon-btn.danger");
+    deleteButtons.forEach(btn => btn.style.display = "none");
+
+    // Düzenleme butonları kapansın
+    const editButtons = document.querySelectorAll(".edit-btn");
+    editButtons.forEach(btn => btn.style.display = "none");
+}
+
+    }
+
+    // Login ekranını kapat
+    document.getElementById("loginScreen").style.display = "none";
+});
+
     // Ay seçimini bugünün ayına ayarla
     const monthInput = document.getElementById("monthSelect");
     const now = new Date();
