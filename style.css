@@ -117,3 +117,50 @@ th, td {
     font-size: 18px;
     cursor: pointer;
 }
+/* Form elemanlarını düzgün hizala */
+.modal-body label {
+    display: block;
+    margin-bottom: 12px;
+    font-weight: 500;
+}
+
+.modal-body input,
+.modal-body textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    margin-top: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+/* Kaydet butonu */
+.modal-body button {
+    width: 100%;
+}
+
+/* Modal kutusu daha düzenli görünsün */
+.modal {
+    width: 400px;
+    max-width: 90%;
+    padding: 20px;
+    border-radius: 12px;
+    background: white;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.modal-header {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.modal-body {
+    max-height: 60vh;
+    overflow-y: auto;
+}
