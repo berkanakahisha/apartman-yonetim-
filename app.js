@@ -10,7 +10,7 @@ let currentRole = null;
 
 // Kullanıcılar (Rol Sistemi)
 const users = [
-    { username: "admin", password: "1234", role: "admin" },
+    { username: "yonetici", password: "6161", role: "admin" },
     { username: "denetci", password: "1234", role: "viewer" }
 ];
 
