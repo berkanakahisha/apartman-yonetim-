@@ -393,3 +393,10 @@ th {
         font-size: 12px;
     }
 }
+.author-tag {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 14px;
+    color: #777;
+    font-style: italic;
+}
