@@ -379,6 +379,16 @@ function handleLogin() {
 // DOM YÜKLENDİĞİNDE (TEK VE DOĞRU)
 // ----------------------------------
 document.addEventListener("DOMContentLoaded", () => {
+// AÇILIR KAPANIR YIL PANELİ
+const toggleBtn = document.getElementById("toggleYearSummary");
+const panel = document.getElementById("yearSummaryPanel");
+
+if (toggleBtn && panel) {
+    toggleBtn.addEventListener("click", () => {
+        panel.classList.toggle("open");
+        toggleBtn.classList.toggle("active");
+    });
+}
 
     // Giriş butonu
     document.getElementById("loginBtn").addEventListener("click", handleLogin);
