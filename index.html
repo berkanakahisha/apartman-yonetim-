@@ -18,7 +18,7 @@
         <header class="app-header">
             <div>
                 <h1>Apartman Yönetim Paneli</h1>
-                <p class="subtitle">Aidat & borç takibi, rapor ve Excel çıktısı</p>
+                <p class="subtitle">Aidat, gelir–gider takibi, rapor ve Excel çıktısı</p>
             </div>
             <div class="header-right">
                 <label class="month-label">
@@ -36,9 +36,10 @@
         </section>
 
         <section class="content">
+            <!-- DAİRELER TABLOSU -->
             <div class="table-card">
                 <div class="table-header">
-                    <h2>Liste</h2>
+                    <h2>Aidat Listesi</h2>
                     <div class="summary">
                         <span>Toplam Aylık Aidat: <strong id="summaryMonthlyFee">0</strong> ₺</span>
                         <span>Bu Ay Ödenen: <strong id="summaryPaid">0</strong> ₺</span>
@@ -65,6 +66,37 @@
                     Veriler tarayıcıdaki <strong>localStorage</strong>'da saklanır.
                 </p>
             </div>
+
+            <!-- GELİR – GİDER KARTI -->
+            <div class="table-card finance-card">
+                <div class="table-header">
+                    <h2>Gelir &amp; Gider Özeti</h2>
+                    <div class="summary">
+                        <span>Bu Ay Toplam Gelir: <strong id="summaryIncome">0</strong> ₺</span>
+                        <span>Bu Ay Toplam Gider: <strong id="summaryExpense">0</strong> ₺</span>
+                        <span class="net-wrapper">Net Kasa: <strong id="summaryNet">0</strong> ₺</span>
+                    </div>
+                </div>
+
+                <div class="finance-toolbar">
+                    <button id="btnAddExpense" class="btn">Gider Ekle</button>
+                </div>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tarih</th>
+                                <th>Kategori</th>
+                                <th>Açıklama</th>
+                                <th>Tutar (₺)</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody id="expenseTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
         </section>
     </div>
 
@@ -78,33 +110,101 @@
             <form id="residentForm" class="modal-body">
                 <input type="hidden" id="residentId" />
 
-                <label>Daire No<input type="text" id="flatNo" required></label>
-                <label>İsim Soyisim<input type="text" id="fullName" required></label>
-                <label>Aylık Aidat<input type="number" id="monthlyFee" required></label>
-                <label>Bu Ay Ödenen<input type="number" id="paidThisMonth" value="0"></label>
-                <label>Not<textarea id="note"></textarea></label>
+                <label>Daire No
+                    <input type="text" id="flatNo" required>
+                </label>
+                <label>İsim Soyisim
+                    <input type="text" id="fullName" required>
+                </label>
+                <label>Aylık Aidat
+                    <input type="number" id="monthlyFee" required min="0" step="0.01">
+                </label>
+                <label>Bu Ay Ödenen
+                    <input type="number" id="paidThisMonth" value="0" min="0" step="0.01">
+                </label>
+                <label>Not
+                    <textarea id="note"></textarea>
+                </label>
 
                 <button type="submit" class="btn primary">Kaydet</button>
             </form>
         </div>
     </div>
 
-    <script src="app.js"></script>
-    <div id="loginScreen" class="login-screen">
-    <div class="login-box">
-        <h2>Apartman Yönetimi Giriş</h2>
+    <!-- GİDER MODALI -->
+    <div class="modal-backdrop" id="expenseModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="expenseModalTitle">Yeni Gider</h2>
+                <button id="expenseModalCloseBtn" class="icon-btn">✕</button>
+            </div>
+            <form id="expenseForm" class="modal-body">
+                <input type="hidden" id="expenseId" />
 
-        <label>Kullanıcı Adı</label>
-        <input type="text" id="loginUsername">
+                <label>Tarih
+                    <input type="date" id="expenseDate" required>
+                </label>
+                <label>Kategori
+                    <input type="text" id="expenseCategory" placeholder="Örn: Elektrik, Temizlik">
+                </label>
+                <label>Açıklama
+                    <input type="text" id="expenseDescription">
+                </label>
+                <label>Tutar (₺)
+                    <input type="number" id="expenseAmount" required min="0" step="0.01">
+                </label>
 
-        <label>Şifre</label>
-        <input type="password" id="loginPassword">
-
-        <button id="loginBtn" class="btn primary">Giriş Yap</button>
-
-        <p id="loginError" class="error-text"></p>
+                <button type="submit" class="btn primary">Kaydet</button>
+            </form>
+        </div>
     </div>
-</div>
 
+    <!-- ÖDEME GEÇMİŞİ MODALI -->
+    <div class="modal-backdrop" id="historyModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="historyModalTitle">Ödeme Geçmişi</h2>
+                <button id="historyModalCloseBtn" class="icon-btn">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ay</th>
+                                <th>Aidat (₺)</th>
+                                <th>Ödenen (₺)</th>
+                                <th>Kalan (₺)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyList"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- GİRİŞ EKRANI -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-box">
+            <h2>Apartman Yönetimi Giriş</h2>
+
+            <label>Kullanıcı Adı</label>
+            <input type="text" id="loginUsername">
+
+            <label>Şifre</label>
+            <input type="password" id="loginPassword">
+
+            <button id="loginBtn" class="btn primary">Giriş Yap</button>
+
+            <p id="loginError" class="error-text"></p>
+            <p class="hint small">
+                Yönetici: <strong>yonetici / 6161</strong><br>
+                Denetçi: <strong>denetci / 1234</strong>
+            </p>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
 </body>
 </html>
