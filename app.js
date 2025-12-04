@@ -663,6 +663,67 @@ function handleLogin() {
 // ----------------------------------
 // DOM YÜKLENDİĞİNDE
 // ----------------------------------
+// ---------------------------------------------------
+// YIL GENELİ ÖZETİ HESAPLAMA
+// ---------------------------------------------------
+function renderYearSummary() {
+    const tbody = document.getElementById("yearSummaryTableBody");
+    if (!tbody) return;
+
+    const select = document.getElementById("yearSelect");
+    const year = select.value;
+
+    tbody.innerHTML = "";
+
+    const months = [
+        "Ocak","Şubat","Mart","Nisan","Mayıs","Haziran",
+        "Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"
+    ];
+
+    let yearIncome = 0;
+    let yearExpense = 0;
+
+    months.forEach((m, i) => {
+        const monthKey = `${year}-${String(i + 1).padStart(2, "0")}`;
+
+        // Aidat toplamı
+        let income = 0;
+        residents.forEach(r => {
+            if (r.payments && r.payments[monthKey]) {
+                income += Number(r.payments[monthKey].paid || 0);
+            }
+        });
+
+        // Gider toplamı
+        let expense = 0;
+        expenses.forEach(e => {
+            if (e.date && e.date.startsWith(monthKey)) {
+                expense += Number(e.amount || 0);
+            }
+        });
+
+        const net = income - expense;
+
+        yearIncome += income;
+        yearExpense += expense;
+
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+            <td>${m}</td>
+            <td class="amount">${formatMoney(income)}</td>
+            <td class="amount">${formatMoney(expense)}</td>
+            <td class="amount">${formatMoney(net)}</td>
+        `;
+
+        tbody.appendChild(tr);
+    });
+
+    document.getElementById("yearIncome").textContent = formatMoney(yearIncome);
+    document.getElementById("yearExpense").textContent = formatMoney(yearExpense);
+    document.getElementById("yearNet").textContent = formatMoney(yearIncome - yearExpense);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     // Login olay bağlama
     document.getElementById("loginBtn").addEventListener("click", handleLogin);
@@ -677,6 +738,38 @@ document.addEventListener("DOMContentLoaded", () => {
             renderTable();
         });
     }
+document.addEventListener("DOMContentLoaded", () => {
+
+    // LOGIN
+    document.getElementById("loginBtn").addEventListener("click", handleLogin);
+
+    // AY SEÇİCİYİ AYARLA
+    const now = new Date();
+    document.getElementById("monthSelect").value =
+        now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
+
+    // YIL SEÇİCİYİ AYARLA ← BURAYA EKLE
+    const yearSelect = document.getElementById("yearSelect");
+    if (yearSelect) {
+        const currentYear = new Date().getFullYear();
+        for (let y = currentYear - 5; y <= currentYear + 1; y++) {
+            const opt = document.createElement("option");
+            opt.value = y;
+            opt.textContent = y;
+            if (y === currentYear) opt.selected = true;
+            yearSelect.appendChild(opt);
+        }
+
+        yearSelect.addEventListener("change", renderYearSummary);
+    }
+
+    // VERİLERİ YÜKLE
+    loadData();
+    renderTable();
+    renderYearSummary(); // Yıl özeti ilk açılışta hesaplansın
+
+    // Gerisi (butonlar, modal eventleri vs.)
+});
 
     // Veri yükle
     loadData();
