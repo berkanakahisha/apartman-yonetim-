@@ -644,6 +644,11 @@ document.addEventListener("DOMContentLoaded", () => {
 };
 
         const paid = Number(document.getElementById("paidThisMonth").value || 0);
+        const phoneValue = document.getElementById("phone").value.trim();
+if (!/^05[0-9]{9}$/.test(phoneValue)) {
+    alert("Lütfen geçerli bir telefon numarası girin. (Örn: 05321234567)");
+    return;
+}
 
         if (id) updateResident(id, data, paid);
         else    addResident(data, paid);
