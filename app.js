@@ -389,6 +389,8 @@ function openEditModal(id) {
     document.getElementById("monthlyFee").value       = r.monthlyFee;
     document.getElementById("paidThisMonth").value    = paid;
     document.getElementById("note").value             = r.note || "";
+    document.getElementById("phone").value = r.phone || "";
+
 
     document.getElementById("residentModal").classList.add("open");
 }
