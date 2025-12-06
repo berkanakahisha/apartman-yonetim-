@@ -68,12 +68,34 @@ async function saveData() {
     const resRef = db.collection("residents");
     const expRef = db.collection("expenses");
 
-    // eski verileri sil
-    const oldRes = await resRef.get();
-    oldRes.forEach(d => d.ref.delete());
+    // residents arşivleme + silme
+const oldRes = await resRef.get();
+oldRes.forEach(d => {
+    const data = d.data();
 
-    const oldExp = await expRef.get();
-    oldExp.forEach(d => d.ref.delete());
+    // Arşiv koleksiyonuna yaz
+    db.collection("residents_deleted").doc(d.id).set({
+        ...data,
+        deletedAt: new Date().toISOString()
+    });
+
+    // Asıl kaydı sil
+    d.ref.delete();
+});
+
+// expenses arşivleme + silme
+const oldExp = await expRef.get();
+oldExp.forEach(d => {
+    const data = d.data();
+
+    db.collection("expenses_deleted").doc(d.id).set({
+        ...data,
+        deletedAt: new Date().toISOString()
+    });
+
+    d.ref.delete();
+});
+
 
     // yeni verileri yaz
     residents.forEach(r => resRef.doc(r.id).set(r));
