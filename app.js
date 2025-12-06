@@ -627,12 +627,14 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("residentForm").addEventListener("submit", (e) => {
         e.preventDefault();
         const id = document.getElementById("residentId").value;
-        const data = {
-            flatNo:     document.getElementById("flatNo").value.trim(),
-            fullName:   document.getElementById("fullName").value.trim(),
-            monthlyFee: Number(document.getElementById("monthlyFee").value || 0),
-            note:       document.getElementById("note").value.trim()
-        };
+       const data = {
+    flatNo:     document.getElementById("flatNo").value.trim(),
+    fullName:   document.getElementById("fullName").value.trim(),
+    monthlyFee: Number(document.getElementById("monthlyFee").value || 0),
+    phone:      document.getElementById("phone").value.trim(),
+    note:       document.getElementById("note").value.trim()
+};
+
         const paid = Number(document.getElementById("paidThisMonth").value || 0);
 
         if (id) updateResident(id, data, paid);
