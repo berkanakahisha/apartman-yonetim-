@@ -114,6 +114,7 @@ function renderTable() {
         tr.innerHTML = `
             <td>${r.flatNo}</td>
             <td>${r.fullName}</td>
+            <td>${r.phone || "-"}</td>
             <td class="amount">${formatMoney(monthly)}</td>
             <td class="amount">${formatMoney(paid)}</td>
             <td class="amount">
@@ -464,6 +465,8 @@ function exportPDF() {
         return [
             r.flatNo,
             r.fullName,
+            r.phone || "-",
+
             formatMoney(monthly)   + " ₺",
             formatMoney(paid)      + " ₺",
             formatMoney(remaining) + " ₺",
@@ -472,7 +475,7 @@ function exportPDF() {
     });
 
     doc.autoTable({
-        head: [["Daire", "İsim", "Aidat", "Ödenen", "Kalan", "Not"]],
+        head: [["Daire", "İsim", "Telefon", "Aidat", "Ödenen", "Kalan", "Not"]],
         body,
         startY: 30,
         styles: { fontSize: 9 }
